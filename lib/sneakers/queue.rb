@@ -20,7 +20,19 @@ class Sneakers::Queue
     # specify all kinds of options we don't need to know about (e.g. for ssl).
     @bunny = @opts[:connection]
     @bunny ||= create_bunny_connection
-    @bunny.start
+
+    _retry = 0
+    begin
+      @bunny.start
+    rescue => e
+      @bunny = create_bunny_connection(true)
+      if _retry === 0
+        _retry++
+        retry
+      else
+        raise e
+      end
+    end
 
     @channel = @bunny.create_channel
     @channel.prefetch(@opts[:prefetch])
@@ -71,12 +83,10 @@ class Sneakers::Queue
     end
   end
 
-  def create_bunny_connection
-    begin
-      Bunny.new(@opts[:amqp], :vhost => @opts[:vhost], :heartbeat => @opts[:heartbeat], :properties => @opts.fetch(:properties, {}), :logger => Sneakers::logger)
-    rescue
-      Bunny.new(@opts[:fail_over_amqp], :vhost => @opts[:vhost], :heartbeat => @opts[:heartbeat], :properties => @opts.fetch(:properties, {}), :logger => Sneakers::logger)
-    end
+  def create_bunny_connection(fail_over = nil)
+    amqp = (fail_over ? @opts[:fail_over_amqp] : @opts[:amqp])
+    Bunny.new(amqp, :vhost => @opts[:vhost], :heartbeat => @opts[:heartbeat], :properties => @opts.fetch(:properties, {}), :logger => Sneakers::logger)
   end
+
   private :create_bunny_connection
 end
