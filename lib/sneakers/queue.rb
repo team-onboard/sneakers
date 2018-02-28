@@ -74,7 +74,7 @@ class Sneakers::Queue
   def create_bunny_connection
     begin
       Bunny.new(@opts[:amqp], :vhost => @opts[:vhost], :heartbeat => @opts[:heartbeat], :properties => @opts.fetch(:properties, {}), :logger => Sneakers::logger)
-    rescue Bunny::TCPConnectionFailed, Bunny::NetworkFailure, Bunny::PossibleAuthenticationFailureException
+    rescue
       Bunny.new(@opts[:fail_over_amqp], :vhost => @opts[:vhost], :heartbeat => @opts[:heartbeat], :properties => @opts.fetch(:properties, {}), :logger => Sneakers::logger)
     end
   end
