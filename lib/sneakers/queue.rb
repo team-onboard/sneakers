@@ -27,7 +27,7 @@ class Sneakers::Queue
     rescue => e
       @bunny = create_bunny_connection(true)
       if _retry === 0
-        _retry++
+        _retry += 1
         retry
       else
         raise e
